@@ -143,7 +143,7 @@ def main(Tiktok_username,VIDEO_COUNT,output_dir="."):
     try:
         launch_browser(Tiktok_username, VIDEO_COUNT)
     except Exception as e:
-        print(f'Error occured : {e}')
+        print(f'Error occurred : {e}')
     except KeyboardInterrupt:
         print("\nOperation cancelled by user")
         sys.exit(1)

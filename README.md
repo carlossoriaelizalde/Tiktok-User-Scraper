@@ -1,6 +1,6 @@
 # Tiktok-User-Scraper
 
-🇬🇧
+## (English)
 
 Tools for:
 1. Extracting video metadata from a TikTok user  
@@ -68,7 +68,7 @@ python main.py
 - The comments downloader is not fully reliable; there will be videos for which comments are successfully downloaded on the first attempt and others for which they are not. The more comments you request per video (this can be changed in `main.py`), the more likely it is to fail due to easier bot detection. However, it may happen that after being detected for some videos, TikTok does not detect the tool for others. For this reason, the program keeps track of which videos have successfully downloaded comments, so that if you request comments for a user’s videos a second time, it will not retry videos whose comments were already downloaded and will focus only on videos whose comments were not obtained in previous executions (making subsequent runs progressively faster).
 
 
-🇪🇸
+## Español
 
 Herramientas para:
 1. Extraer metadatos de vídeos de un usuario de TikTok  

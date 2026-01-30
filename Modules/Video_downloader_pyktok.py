@@ -6,11 +6,11 @@ import pyktok as pyk
 
 
 def _sanitize_folder_name(name: str) -> str:
-    """Sanitiza nombre para carpeta en Windows."""
+    """Sanitize name for folder in Windows/Linux."""
     if not name:
         return "unknown_profile"
     name = name.strip().lower().replace(" ", "_")
-    # Quita caracteres problemáticos en Windows
+    # Delete problematic caracters in Windows
     forbidden = '<>:"/\\|?*'
     for ch in forbidden:
         name = name.replace(ch, "")
@@ -18,11 +18,11 @@ def _sanitize_folder_name(name: str) -> str:
 
 
 def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
-    # Carga JSON
+    # Load JSON
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Detecta username
+    # Detect username
     username = "unknown_profile"
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         username = data[0].get("username") or data[0].get("Username") or username
@@ -35,12 +35,12 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
     valid_videos = []
     discarded_videos = []
 
-    # Para que pyktok guarde donde queremos
+    # So that pyktok saves where we want
     prev_cwd_global = os.getcwd()
 
     for i, video in enumerate(data, start=1):
         if not isinstance(video, dict):
-            print(f"[SKIP] Item no válido (no es dict) en posición {i}")
+            print(f"[SKIP] Invalid Item (not dict) in position {i}")
             discarded_videos.append(video)
             continue
 
@@ -53,20 +53,20 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
             continue
 
         if not url or not isinstance(url, str) or not url.startswith("http"):
-            print(f"[SKIP] URL inválida: {video_id} -> {url}")
+            print(f"[SKIP] Invalid URL: {video_id} -> {url}")
             discarded_videos.append(video)
             continue
 
-        print(f"[{i}] Descargando {video_id}")
+        print(f"[{i}] Downloading {video_id}")
 
         video_dir = os.path.join(profile_root, str(video_id))
         os.makedirs(video_dir, exist_ok=True)
 
         try:
-            # CLAVE: pyktok guarda el mp4 en el CWD
+            # As pyktok saves the mp4 video in cwd.
             os.chdir(video_dir)
 
-            # Al estar ya dentro del directorio del vídeo, el CSV se queda ahí también
+            # As we are already in the directory of the video, CSV remains there too.
             pyk.save_tiktok(url, True, "video_data.csv")
 
             valid_videos.append(video)
@@ -76,13 +76,13 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
             print(f"[FAIL] {video_id}: {e}")
             discarded_videos.append(video)
 
-            # Limpieza (borra lo que se haya creado a medias)
+            # Clean (delete not finished objects)
             try:
                 for fname in os.listdir(video_dir):
                     fpath = os.path.join(video_dir, fname)
                     if os.path.isfile(fpath):
                         os.remove(fpath)
-                # Intenta borrar la carpeta si quedó vacía
+                # Try to delete folder if empty
                 if not os.listdir(video_dir):
                     os.rmdir(video_dir)
             except:
@@ -91,13 +91,13 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
             time.sleep(2)
 
         finally:
-            # Siempre volvemos al directorio original del proceso
+            # Always go back to original directory
             try:
                 os.chdir(prev_cwd_global)
             except:
                 pass
 
-    # Guarda JSON limpio y descartado dentro de la carpeta del perfil
+    # Save "clean" and "discarded" JSON files inside the profile's folder
     base_name = os.path.splitext(os.path.basename(json_path))[0]
     clean_json = os.path.join(profile_root, f"{base_name}_clean.json")
     discarded_json = os.path.join(profile_root, f"{base_name}_discarded.json")
@@ -109,7 +109,8 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
         json.dump(discarded_videos, f, ensure_ascii=False, indent=2)
 
     print("\nResumen:")
-    print(f"✔ Vídeos descargados: {len(valid_videos)}")
-    print(f"✘ Vídeos descartados: {len(discarded_videos)}")
+    print(f"✔ Downloaded videos: {len(valid_videos)}")
+    print(f"✘ Discarded videos: {len(discarded_videos)}")
 
-    print(f"📁 Guardado en: {profile_root}")
+    print(f"📁 Saved in: {profile_root}")
+

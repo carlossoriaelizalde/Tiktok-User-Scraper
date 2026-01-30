@@ -63,7 +63,7 @@ python main.py
 
 - La parte de descargar vídeos, y sobre todo la de descargar comentarios, son lentas. Esto es así para dificultar que TikTok nos detecte como bots.
 - El módulo de descargar vídeos contempla la posibilidad de que algunos vídeos en realidad no lo sean (fotos). No los descarga. 
-- La parte de descargar comentarios no es completamente eficaz; habrá vídeos de los cuales a la primera consiga los comentarios y otros no. Cuántos más comentarios pidáis de cada vídeo, más fallará porque os detectará antes como bots. Sin embargo, puede que después de detectaros para algunos vídeos, luego no lo haga para otros. Por eso, se guarda registro de qué vídeos sí se han conseguido comentarios, para que si pedís los comentarios de los vídeos de un usuario una segunda vez, no lo intente con aquellos vídeos cuyos comentarios sí que han sido descargados y se centre en aquellos vídeos cuyos comentarios no se han obtenido en ejecuciones anteriores (las ejecuciones serán cada vez más rápidas). 
+- La parte de descargar comentarios no es completamente eficaz; habrá vídeos de los cuales a la primera consiga los comentarios y otros no. Cuántos más comentarios pidáis de cada vídeo (se cambia en el main), más fallará porque os detectará antes como bots. Sin embargo, puede que después de detectaros para algunos vídeos, luego no lo haga para otros. Por eso, se guarda registro de qué vídeos sí se han conseguido comentarios, para que si pedís los comentarios de los vídeos de un usuario una segunda vez, no lo intente con aquellos vídeos cuyos comentarios sí que han sido descargados y se centre en aquellos vídeos cuyos comentarios no se han obtenido en ejecuciones anteriores (las ejecuciones serán cada vez más rápidas). 
 
 
 

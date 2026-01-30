@@ -1,23 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Comments_downloader_pyktok
-
-Módulo para descargar comentarios de TikTok para vídeos ya descargados.
-
-Encaja con el flujo:
-1) Scraper -> DATA/<username>_videos.json
-2) Downloader -> DOWNLOADED_VIDEOS/<username>/<video_id>/ y crea *_clean.json y *_discarded.json
-3) Comments -> (este módulo) guarda comentarios dentro de cada carpeta del vídeo.
-
-Requisitos:
-- Usa pyktok.save_tiktok_comments (descarga de vídeo se obvia)
-- Guarda tracking JSON en la carpeta del usuario:
-  - <username>_comentarios_descargados.json
-  - <username>_comentarios_no_descargados.json (se elimina si queda vacío)
-
-Notas:
-- Para minimizar bloqueos, este módulo incluye esperas aleatorias y permite reintentos suaves.
-"""
-
 from __future__ import annotations
 
 import json
@@ -30,7 +11,7 @@ import pyktok as pyk
 
 
 def _sanitize_folder_name(name: str) -> str:
-    """Sanitiza nombre para carpeta en Windows."""
+    """Sanitize nombre for folder in Windows/Linux."""
     if not name:
         return "unknown_profile"
     name = name.strip().lower().replace(" ", "_")
@@ -80,7 +61,7 @@ def _video_dir(profile_root: str, video_id: str) -> str:
 
 
 def _should_skip_video(profile_root: str, video_id: str) -> bool:
-    """Si la carpeta del vídeo no existe, no podemos guardar comentarios ahí."""
+    """If the folder of the video does not exist, we can not save comments there."""
     return not os.path.isdir(_video_dir(profile_root, video_id))
 
 
@@ -92,16 +73,16 @@ def _download_comments_for_url(
     browser: str,
     soft_retry: bool,
 ) -> Tuple[bool, Optional[str]]:
-    """Descarga comentarios en video_dir usando pyktok.
+    """Download comments in video_dir using pyktok.
 
-    Devuelve (ok, error_message).
+    Returns (ok, error_message).
     """
     prev_cwd = os.getcwd()
     try:
         os.makedirs(video_dir, exist_ok=True)
         os.chdir(video_dir)
 
-        # Cookies desde un navegador real.
+        # Cookies from a real browser.
         pyk.specify_browser(browser)
 
         pyk.save_tiktok_comments(
@@ -115,7 +96,7 @@ def _download_comments_for_url(
         return True, None
     except Exception as e:
         if soft_retry:
-            # Reintento suave: refresca cookies y espera un poco.
+            # Soft retrial: refresh cookies and wait a little.
             try:
                 pyk.specify_browser(browser)
             except Exception:
@@ -152,24 +133,23 @@ def download_comments_from_clean_json(
     long_sleep_range_seconds: Tuple[int, int] = (60, 120),
     soft_retry: bool = True,
 ) -> Dict[str, Any]:
-    """Descarga comentarios basándose en un *_clean.json (vídeos descargados).
+    """Download comments based on a *_clean.json file (downloaded videos).
 
-    Lógica de estado (3 casos que describes):
-    - Si NO existe <username>_comentarios_no_descargados.json: se entiende que
-      o bien nunca se ha intentado o bien ya está todo. En ese caso, se calcula
-      el TODO como: vídeos del clean_json menos vídeos ya presentes en
-      comentarios_descargados.
-    - Si existe comentarios_no_descargados: se intenta sólo esos.
-    - Si comentarios_no_descargados queda vacío al final, se elimina.
+    3 cases: 
+    - If there is NOT any <username>_comentarios_no_descargados.json file, either 
+      it has never been tried or everything is OK. 
+      In this case, it is calculated as "clean.json videos" - "downloaded_comments.json"
+    - If not_downloaded_comments exists: just try with those.
+      - If not_downloaded_comments is empty at the end of the execution, it is deleted.
 
-    Devuelve un dict-resumen con contadores.
+    Returns a summary-dict with counters.
     """
 
     videos: List[dict] = _safe_load_json(clean_json_path, default=[])
     if not isinstance(videos, list) or not videos:
         return {
             "ok": False,
-            "reason": "clean_json vacío o inválido",
+            "reason": "clean_json empty or invalid",
             "attempted": 0,
             "downloaded": 0,
             "failed": 0,

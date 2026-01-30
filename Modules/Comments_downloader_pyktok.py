@@ -159,27 +159,27 @@ def download_comments_from_clean_json(
     profile_root = os.path.join(output_root, username)
     os.makedirs(profile_root, exist_ok=True)
 
-    downloaded_json = os.path.join(profile_root, f"{username}_comentarios_descargados.json")
-    failed_json = os.path.join(profile_root, f"{username}_comentarios_no_descargados.json")
+    downloaded_json = os.path.join(profile_root, f"{username}_comments_downloaded.json")
+    failed_json = os.path.join(profile_root, f"{username}_comments_not_downloaded.json")
 
     downloaded_list: List[dict] = _safe_load_json(downloaded_json, default=[])
     failed_list: List[dict] = _safe_load_json(failed_json, default=[])
 
-    # Normaliza (por si hay duplicados)
+    # Normalize (in case there are duplicated items)
     downloaded_by_id = _index_by_video_id(downloaded_list)
     failed_by_id = _index_by_video_id(failed_list)
     clean_by_id = _index_by_video_id(videos)
 
-    # Decide qué intentar:
+    # Decides what to try:
     if os.path.exists(failed_json) and failed_by_id:
-        # Caso 2: hubo intento previo y quedan pendientes
+        # Case 2: Previous trial and pending videos
         todo_by_id = {vid: failed_by_id[vid] for vid in list(failed_by_id.keys()) if vid in clean_by_id}
     else:
-        # Caso 1 o 3: o nunca se intentó, o ya está todo. 
-        # Caso 3: ya está todo descargado (no hay pendientes)
+        # Case 1 or 3: either never tried, or everything done. 
+        # Case 3: everything downloaded (not pending).
         if os.path.exists(downloaded_json) and not os.path.exists(failed_json):
             return {"status": "all_done", "downloaded": 0, "failed": 0}
-        # Caso 1: Nunca se intentó
+        # Case 1: Never tried
         else:
             todo_by_id = {vid: item for vid, item in clean_by_id.items() if vid not in downloaded_by_id}
 
@@ -187,25 +187,25 @@ def download_comments_from_clean_json(
     downloaded_now = 0
     failed_now = 0
 
-    # Itera de forma estable
+    # Iterate in a stable way
     todo_items = list(todo_by_id.items())
 
     for idx, (video_id, item) in enumerate(todo_items, start=1):
         url = item.get("video_url") or item.get("Video_url")
         if not url or not isinstance(url, str) or not url.startswith("http"):
-            # URL inválida => marcamos como fallido
+            # Invalid URL => Marked as invalid
             failed_by_id[video_id] = item
             continue
 
         if _should_skip_video(profile_root, video_id):
-            # No existe carpeta del vídeo (no está descargado o no coincide la estructura)
+            # Folder of video does not exists (not downloaded or mismatch with the strcuture)
             failed_by_id[video_id] = item
             continue
 
         attempted += 1
         video_dir = _video_dir(profile_root, video_id)
         
-        print(f"\n[{idx}/{len(todo_items)}] 🎥 Video {video_id} → intentando descargar comentarios...")
+        print(f"\n[{idx}/{len(todo_items)}] 🎥 Video {video_id} → Trying to download comments...")
         
         ok, err = _download_comments_for_url(
             url=url,
@@ -219,44 +219,44 @@ def download_comments_from_clean_json(
         if ok:
             downloaded_now += 1
             downloaded_by_id[video_id] = item
-            # Si estaba en failed, lo quitamos
+            # If it was in failed, we remove it
             failed_by_id.pop(video_id, None)
-            print(f"    ✅ Comentarios descargados correctamente")
+            print(f"    ✅ Comments correctly downloaded")
         else:
             failed_now += 1
-            # Guardamos el item en failed (sin machacar metadatos previos)
+            # Save the item in failed (not destroy previous metadata)
             failed_by_id[video_id] = item
-            print(f"    ❌ Error al descargar comentarios")
+            print(f"    ❌ Error when downloading comments")
             if err:
-                print(f"       Motivo: {err}")
+                print(f"       Reason: {err}")
 
-        # Sleep anti-rate-limit (similar a tu script)
+        # Sleep anti-rate-limit 
         if long_sleep_every and (idx % long_sleep_every == 0):
             time.sleep(random.uniform(*long_sleep_range_seconds))
         else:
             time.sleep(random.uniform(*sleep_range_seconds))
 
-    # Persistimos los JSONs
+    # Persist the JSON files
     downloaded_out = list(downloaded_by_id.values())
     failed_out = list(failed_by_id.values())
 
     if downloaded_out:
         _safe_write_json(downloaded_json, downloaded_out)
     else:
-        # Si no hay nada descargado aún, no forzamos crear el archivo
-        # (pero si existe, lo dejamos tal cual)
+        # If there is nothing downloaded yet, do not force the creation of the file.
+        # If exists, leave it as it is.
         if os.path.exists(downloaded_json):
             _safe_write_json(downloaded_json, downloaded_out)
 
     if failed_out:
         _safe_write_json(failed_json, failed_out)
     else:
-        # Caso 3: si queda vacío, eliminar
+        # Case 3: If it is empty, delete.
         if os.path.exists(failed_json):
             try:
                 os.remove(failed_json)
             except Exception:
-                # fallback: lo dejamos vacío
+                # fallback: Leave it empty.
                 _safe_write_json(failed_json, failed_out)
 
     return {

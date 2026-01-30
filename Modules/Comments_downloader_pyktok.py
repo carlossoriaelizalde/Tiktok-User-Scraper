@@ -11,7 +11,7 @@ import pyktok as pyk
 
 
 def _sanitize_folder_name(name: str) -> str:
-    """Sanitize nombre for folder in Windows/Linux."""
+    """Sanitize folder name in Windows/Linux."""
     if not name:
         return "unknown_profile"
     name = name.strip().lower().replace(" ", "_")
@@ -136,7 +136,7 @@ def download_comments_from_clean_json(
     """Download comments based on a *_clean.json file (downloaded videos).
 
     3 cases: 
-    - If there is NOT any <username>_comentarios_no_descargados.json file, either 
+    - If there is NOT any <username>_comments_not_downloaded.json file, either 
       it has never been tried or everything is OK. 
       In this case, it is calculated as "clean.json videos" - "downloaded_comments.json"
     - If not_downloaded_comments exists: just try with those.

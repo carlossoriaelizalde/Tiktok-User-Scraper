@@ -108,9 +108,10 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
     with open(discarded_json, "w", encoding="utf-8") as f:
         json.dump(discarded_videos, f, ensure_ascii=False, indent=2)
 
-    print("\nResumen:")
+    print("\nSummary:")
     print(f"✔ Downloaded videos: {len(valid_videos)}")
     print(f"✘ Discarded videos: {len(discarded_videos)}")
 
     print(f"📁 Saved in: {profile_root}")
+
 

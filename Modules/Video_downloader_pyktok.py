@@ -1,87 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 28 18:28:39 2026
-
-@author: carlo
-"""
-"""
-import os
-import json
-import time
-import pyktok as pyk
-
-def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
-
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    username = "unknown_profile"
-    if isinstance(data, list) and len(data) > 0:
-        username = data[0].get("username") or data[0].get("Username") or username
-        username = username.strip().lower().replace(" ", "_")
-
-    profile_root = os.path.join(output_root, username)
-    os.makedirs(profile_root, exist_ok=True)
-
-    valid_videos = []
-    discarded_videos = []
-
-    for i, video in enumerate(data, start=1):
-        url = video.get("video_url") or video.get("Video_url")
-        video_id = video.get("video_id")
-
-        if not video_id:
-            print("[SKIP] video_id inválido")
-            discarded_videos.append(video)
-            continue
-
-        if not url or not url.startswith("http"):
-            print(f"[SKIP] URL inválida: {video_id}")
-            discarded_videos.append(video)
-            continue
-
-        print(f"[{i}] Descargando {video_id}")
-
-        video_dir = os.path.join(profile_root, video_id)
-        os.makedirs(video_dir, exist_ok=True)
-
-        try:
-            pyk.save_tiktok(
-                url,
-                True,
-                os.path.join(video_dir, "video_data.csv")
-            )
-            valid_videos.append(video)
-            time.sleep(sleep_time)
-
-        except Exception as e:
-            print(f"[FAIL] {video_id}: {e}")
-            discarded_videos.append(video)
-
-            try:
-                for f in os.listdir(video_dir):
-                    os.remove(os.path.join(video_dir, f))
-                os.rmdir(video_dir)
-            except:
-                pass
-
-            time.sleep(2)
-
-    base_name = os.path.splitext(os.path.basename(json_path))[0]
-    clean_json = os.path.join(profile_root, f"{base_name}_clean.json")
-    discarded_json = os.path.join(profile_root, f"{base_name}_discarded.json")
-
-    with open(clean_json, "w", encoding="utf-8") as f:
-        json.dump(valid_videos, f, ensure_ascii=False, indent=2)
-
-    with open(discarded_json, "w", encoding="utf-8") as f:
-        json.dump(discarded_videos, f, ensure_ascii=False, indent=2)
-
-    print("\nResumen:")
-    print(f"✔ Vídeos descargados: {len(valid_videos)}")
-    print(f"✘ Vídeos descartados: {len(discarded_videos)}")
-
-"""
 import os
 import json
 import time
@@ -194,4 +111,5 @@ def process_json_file(json_path, output_root="DOWNLOADED_VIDEOS", sleep_time=5):
     print("\nResumen:")
     print(f"✔ Vídeos descargados: {len(valid_videos)}")
     print(f"✘ Vídeos descartados: {len(discarded_videos)}")
+
     print(f"📁 Guardado en: {profile_root}")

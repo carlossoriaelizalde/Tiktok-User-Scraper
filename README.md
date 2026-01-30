@@ -54,6 +54,8 @@ camoufox fetch
 Cada vez que vayais a usar el programa, posicionaros en cmd en la carpeta donde esté el main y ejecutad:
 
 ```
+conda activate <nombre_environment>
+
 python main.py
 ```
 

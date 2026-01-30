@@ -1,0 +1,8 @@
+camoufox
+playwright
+requests
+colorama
+humanize
+pyfiglet
+rich
+pyktok

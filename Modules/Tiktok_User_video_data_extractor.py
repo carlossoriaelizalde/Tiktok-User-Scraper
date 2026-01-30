@@ -134,7 +134,7 @@ def launch_browser(Tiktok_username,VIDEO_COUNT):
         page.close()
 
 def main(Tiktok_username,VIDEO_COUNT,output_dir="."):
-    # RESET del estado global para cada usuario
+    # RESET of the global state for each user
     global results, identifier_codes
     results = []
     identifier_codes = set()
@@ -148,6 +148,6 @@ def main(Tiktok_username,VIDEO_COUNT,output_dir="."):
         print("\nOperation cancelled by user")
         sys.exit(1)
     finally:
-        # respeta output_dir (ahora sí)
+        # Respect output_dir
         out_path = os.path.join(output_dir, "DATA", f"{Tiktok_username}_videos.json")
         write_data(results[:VIDEO_COUNT], out_path)

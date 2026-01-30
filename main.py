@@ -5,10 +5,6 @@ Created on Wed Jan 28 10:17:59 2026
 @author: carlo
 """
 
-"""
-Video_downloader NO SIRVE, LO DEJO PORQUE ERA EL ORIGINAL PERO NO SE USA
-"""
-
 import os
 import sys
 import random
@@ -52,11 +48,13 @@ def show_banner(tool_name=""):
         print(f'{cy}{tool_banner.renderText(tool_name)}{rs}')
     print(f'{r}  TikTok Video Scrapers Suite | Original Author: kev | Author: Carlos Soria Elizalde {rs}\n')
 
-def get_valid_input(prompt, validation_func, error_message):
+def get_valid_input(prompt, validation_func, error_message, allow_back = True):
     """Helper function to get validated input"""
     while True:
         try:
             user_input = input(prompt).strip()
+            if allow_back and user_input == "0":
+                return None
             if validation_func(user_input):
                 return user_input
             print(f'{r}{error_message}{rs}')
@@ -71,7 +69,7 @@ def tiktok_user_scraper_menu():
     show_banner("User-Videos Scraper")
     
     # Get name
-    username_prompt = f'{lg}Enter username to Scrape (without @ e.g.,"khaby.lame"): {r}'
+    username_prompt = f'{lg}Enter username to Scrape (without @ e.g.,"khaby.lame"). Enter 0 to return to main menu: {r}'
     username_validator = lambda x: 2 <= len(x) <= 24 and all(c.isalnum() or c in ['.', '_', '-'] for c in x) and not x.startswith('.') and not x.endswith('.')
     username_error = '[!] Invalid username. Please enter a valid username'
     username = get_valid_input(username_prompt, username_validator, username_error)
@@ -117,7 +115,7 @@ def video_downloader_menu():
         print(f'{lg}[{i}] {file_name}{rs}')
     
     # Get file selection
-    file_prompt = f'\n{lg}Enter the number of the file to download (1-{len(json_files)}): {r}'
+    file_prompt = f'\n{lg}Enter the number of the file to download (1-{len(json_files)}). Enter 0 to return to main menu: {r}'
     file_validator = lambda x: x.isdigit() and 1 <= int(x) <= len(json_files)
     file_error = f'[!] Invalid selection. Please enter a number between 1 and {len(json_files)}'
     file_choice = get_valid_input(file_prompt, file_validator, file_error)
@@ -140,7 +138,6 @@ def video_downloader_menu():
     
     try:
         print(f'\n{lg}Starting video downloader with file: {os.path.basename(selected_file)}{rs}')
-        #Video_downloader.process_json_file(selected_file)
         Video_downloader_pyktok.process_json_file(
             selected_file,
             output_root=os.path.join(PROJECT_ROOT, "DOWNLOADED_VIDEOS")
@@ -156,17 +153,17 @@ def comments_downloader_menu():
     clear_screen()
     show_banner("Comments Downloader")
 
-    # Busca *_clean.json dentro de DOWNLOADED_VIDEOS/<username>/
+    # Looks for *_clean.json inside DOWNLOADED_VIDEOS/<username>/
     os.makedirs(DOWNLOADED_FOLDER, exist_ok=True)
     clean_json_files = glob.glob(os.path.join(DOWNLOADED_FOLDER, '*', '*_clean.json'))
 
     if not clean_json_files:
         print(f'{r}[!] No *_clean.json files found in {DOWNLOADED_FOLDER}{rs}')
-        print(f'{ye}Tip: primero descarga vídeos (menú [2]) para que se cree el *_clean.json.{rs}')
+        print(f'{ye}Tip: First download videos (menu [2]) to create the *_clean.json.{rs}')
         sleep(2)
         return
 
-    print(f'{lg}Available *_clean.json files (downloaded videos) found (WARNING: IF PARTIAL DOWNLOAD ALREADY DONE, IT WILL CONTINUE, NOT START FROM THE BEGINNING):{rs}')
+    print(f'{lg}Available *_clean.json files (downloaded videos) found (WARNING: IF PARTIAL DOWNLOAD ALREADY DONE, IT WILL CONTINUE, NOT START FROM THE BEGINNING). Enter 0 to return to main menu:{rs}')
     for i, file_path in enumerate(clean_json_files, 1):
         rel = os.path.relpath(file_path, PROJECT_ROOT)
         print(f'{lg}[{i}] {rel}{rs}')
@@ -180,7 +177,7 @@ def comments_downloader_menu():
 
     selected_file = clean_json_files[int(file_choice) - 1]
 
-    # Descarga comentarios
+    # Download comments
     try:
         print(f'\n{lg}Starting comments downloader with file: {os.path.basename(selected_file)}{rs}')
         summary = Comments_downloader_pyktok.download_comments_from_clean_json(
@@ -192,22 +189,22 @@ def comments_downloader_menu():
         )
         
         if summary and summary.get("status") == "all_done":
-            print("\n✅ Comentarios ya descargados para todos los vídeos disponibles.")
-            input("Pulsa Enter para volver al menú principal...")
+            print("\n✅ Comments already downloaded for all available videos.")
+            input("Press Enter to return to main menu...")
             return
         
         if not summary.get("ok"):
             print(f"{r}[!] {summary.get('reason', 'Unknown error')}{rs}")
         else:
-            print(f"\n{lg}Resumen ({summary.get('username')}):{rs}")
-            print(f"  Intentados: {summary.get('attempted')}\n  ✅ Comentarios descargados: {summary.get('downloaded')}\n  ❌ Fallidos: {summary.get('failed')}\n  Pendientes: {summary.get('remaining_failed')}")
+            print(f"\n{lg}Summary ({summary.get('username')}):{rs}")
+            print(f"  Tried: {summary.get('attempted')}\n  ✅ Downloaded comments: {summary.get('downloaded')}\n  ❌ Failed: {summary.get('failed')}\n  Pending: {summary.get('remaining_failed')}")
             print(f"\n{cy}Tracking:{rs}")
             print(f"  - {os.path.relpath(summary.get('downloaded_json'), PROJECT_ROOT)}")
-            # failed_json puede no existir si se eliminó
+            # failed_json may not exist if deleted
             if summary.get('remaining_failed'):
                 print(f"  - {os.path.relpath(summary.get('failed_json'), PROJECT_ROOT)}")
             else:
-                print(f"  - comentarios_no_descargados.json vacío -> eliminado")
+                print(f"  - comments_not_downloaded.json empty -> deleted")
 
         input(f'\n{lg}Press Enter to return to main menu...{rs}')
     except Exception as e:
